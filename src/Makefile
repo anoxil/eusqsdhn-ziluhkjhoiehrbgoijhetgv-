@@ -17,7 +17,7 @@ $(BIN): common.o
 
 .PHONY: test
 test:
-	./threshold ../data/log1/001-rgb.png
+	./threshold ../data/log1/244-rgb.png
 
 .PHONY: clean
 clean:
