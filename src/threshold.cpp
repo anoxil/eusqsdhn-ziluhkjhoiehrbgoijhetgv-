@@ -3,54 +3,65 @@
 
 void process(const char* ims_name)
 {
-    Mat ims_rgb = imread(ims_name, CV_LOAD_IMAGE_COLOR);
-    if (!ims_rgb.data) {
+    Mat ims_bgr = imread(ims_name, CV_LOAD_IMAGE_COLOR);
+    if (!ims_bgr.data) {
         cout << ERROR << "Could not open the image." << ims_name << endl;
         exit(1);
     }
-    int width = ims_rgb.size().width;
-    int height = ims_rgb.size().height;
-    VideoWriter video("output.avi", CV_FOURCC('M','J','P','G'), 10, Size(width, height));
+    int width = ims_bgr.size().width;
+    int height = ims_bgr.size().height;
+    Mat ims_threshold(height, width, CV_8UC1);
 
-    int min_H = 255;
-    int min_S = 255;
-    int min_V = 255;
-    int max_H = 0;
-    int max_S = 0;
-    int max_V = 0;
+    Mat ims_hsv(height, width, CV_8UC3); cvtColor(ims_bgr, ims_hsv, CV_BGR2HSV);
+    vector<Mat> hsv_channels(3);
+    split(ims_hsv, hsv_channels);
+    imshow("H", hsv_channels[0]);
+    imshow("S", hsv_channels[1]);
+    imshow("V", hsv_channels[2]);
 
-    for (int img = 1; img <= 374; img++)
+    vector<Mat> bgr_channels(3);
+    split(ims_bgr, bgr_channels);
+    imshow("B", bgr_channels[0]);
+    imshow("G", bgr_channels[1]);
+    imshow("R", bgr_channels[2]);
+
+    //adaptiveThreshold(ims_bgr, ims_bgr_thresh, );
+
+    //VideoWriter video("output.avi", CV_FOURCC('P','I','M','1'), 24, Size(width, height));
+
+    Mat ims_bgr_thresh(height, width, CV_8UC3);
+    Mat mask;
+    inRange(ims_hsv, Scalar(30,0,0), Scalar(90,255,255), mask);
+    imshow("mask", mask);
+
+    for (int img = 1; img <= 1; img++)
     {
+        /*
         string current_ims_name = "../data/log1/";
         if (img < 10) {current_ims_name += "00";}
         else if (img < 100) {current_ims_name += "0";}
         stringstream ss; ss << img;
         current_ims_name += ss.str() + "-rgb.png";
+        
 
-        Mat ims_rgb = imread(current_ims_name, CV_LOAD_IMAGE_COLOR);
-        Mat ims_hsv; cvtColor(ims_rgb, ims_hsv, CV_RGB2HSV);
+        Mat ims_bgr = imread(ims_name, CV_LOAD_IMAGE_COLOR); //change ims_name to current_ims_name when using for
+        Mat ims_hsv; cvtColor(ims_bgr, ims_hsv, CV_BGR2HSV);
 
         Mat ims_threshold(height, width, CV_8UC1);
+        */
 
         for(int i = 0; i<height; i++){
             for(int j = 0; j<width; j++){
                 int H = ims_hsv.at<Vec3b>(i,j)[0];  // 0-180
-                int S = ims_hsv.at<Vec3b>(i,j)[1];  // 0-255
+                //int S = ims_hsv.at<Vec3b>(i,j)[1];  // 0-255
                 int V = ims_hsv.at<Vec3b>(i,j)[2];  // 0-255
-
-                if ((S != 0) && (H != 0))
-                {
-                    if (H < min_H) min_H = H;
-                    if (S < min_S) min_S = S;
-                    if (V < min_V) min_V = V;
-                    if (H > max_H) max_H = H;
-                    if (S > max_S) max_S = S;
-                    if (V > max_V) max_V = V;
-                }
+                int B = ims_bgr.at<Vec3b>(i,j)[0];  // 0-255
+                //int G = ims_bgr.at<Vec3b>(i,j)[1];  // 0-255
+                //int R = ims_bgr.at<Vec3b>(i,j)[2];  // 0-255
 
                 // min_h:60|min_S:1|min_V:38|max_h:110|max_S:255|max_V:255 (terrain)
                 // min_h:1|min_S:2|min_V:32|max_h:179|max_S:255|max_V:255  (fullimg)
-                if( ((H > 40) && (H < 95)) && (V > 38) ) //it's green & saturation > 0.6
+                if( (B < 50) && ((H > 40) && (H < 110)) && (V > 38) ) //it's green & saturation > 0.6
                 {
                     ims_threshold.at<uchar>(i,j) = 255;
                 }
@@ -60,18 +71,14 @@ void process(const char* ims_name)
                 }
             }
         }
-        video.write(ims_threshold);
+        //video.write(ims_threshold);
     }
-    video.release();
 
-    cout << "min_h:" << min_H << "|min_S:" << min_S << "|min_V:" << min_V << "|max_h:" << max_H << "|max_S:" << max_S << "|max_V:" << max_V << endl;
-    
-    /*
-    imshow("rgb_ims", ims_rgb);
+    imshow("bgr_ims", ims_bgr);
     imshow("hsv_ims", ims_hsv);
     imshow("thresholded_ims", ims_threshold);
     waitKey(0);
-    */
+    
 }
 
 int main(int argc, char* argv[])
