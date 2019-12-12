@@ -7,17 +7,31 @@ LDLIBS=\
 	-lopencv_highgui
 
 
-OBJ= common.o
-BIN=threshold\
+OBJ=\
+	common.o\
+	morphology.o
+
+BIN=\
+	threshold\
+	threshold-medianfilter\
+	threshold-opening
 
 .PHONY: all 
 all: $(BIN)
 
-$(BIN): common.o
+$(BIN): $(OBJ)
 
 .PHONY: test
 test:
-	./threshold ../data/log1/244-rgb.png
+	./threshold ../data/log1/001-rgb.png
+
+.PHONY: test-opening
+test-opening:
+	./threshold-opening ../data/log1/001-rgb.png
+
+.PHONY: test-medianfilter
+test-medianfilter:
+	./threshold-medianfilter ../data/log1/001-rgb.png
 
 .PHONY: clean
 clean:

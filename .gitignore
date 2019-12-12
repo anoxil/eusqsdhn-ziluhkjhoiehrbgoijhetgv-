@@ -36,3 +36,6 @@ cmake-build-debug/
 CMakeLists.txt
 .idea/
 bin/
+
+# ROBOT2020
+data/log1_results/
