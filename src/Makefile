@@ -9,7 +9,8 @@ LDLIBS=\
 
 OBJ=\
 	common.o\
-	morphology.o
+	morphology.o\
+	compare.o
 
 BIN=\
 	threshold\

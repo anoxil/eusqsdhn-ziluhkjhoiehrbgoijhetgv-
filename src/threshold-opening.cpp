@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include "common.h"
 #include "morphology.hpp"
+#include "compare.hpp"
 
 Mat makeShape(int halfsize)
 {
@@ -54,7 +55,7 @@ void process(const char* ims_name)
     Mat mask_temp(height, width, CV_8UC1);
     Mat mask_result(height, width, CV_8UC1);
 
-    for (int img = 1; img <= 374; img++)
+    for (int img = 1; img <= 1; img++)
     {
         cout << "img:" << img << endl;
         string current_ims_name = "../data/log1/";
@@ -81,6 +82,29 @@ void process(const char* ims_name)
         //-- Make the dilation
         mm(shape, mask_temp, mask_result, maximum);
         imwrite(result_ims_name, mask_result);
+
+        /*////////
+        vector< vector<Point> > contours;
+        vector<Vec4i> hierarchy; 
+        findContours(mask_result, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+        vector< vector<Point> > hull(contours.size());
+        for(int i = 0; i < contours.size(); i++)
+            convexHull(Mat(contours[i]), hull[i]);
+
+        Mat drawing = Mat::zeros(mask_result.size(), CV_8UC3);
+
+        for(int i = 0; i < contours.size(); i++) {
+            cv::Scalar color_contours = Scalar(0, 255, 0); // green - color for contours
+            cv::Scalar color = Scalar(255, 0, 0); // blue - color for convex hull
+            // draw ith contour
+            drawContours(drawing, contours, i, color_contours, 1, 8, vector<Vec4i>(), 0, Point());
+            // draw ith convex hull
+            drawContours(drawing, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point()); //us
+        }
+        imshow("result", drawing);
+        waitKey(0);
+        */
     }
 }
 

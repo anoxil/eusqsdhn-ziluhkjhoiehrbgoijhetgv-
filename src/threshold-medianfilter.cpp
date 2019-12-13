@@ -1,106 +1,100 @@
 #include <opencv2/opencv.hpp>
 #include "common.h"
+#include "compare.hpp"
 
 void process(const char* ims_name)
 {
-    Mat ims_bgr = imread(ims_name, CV_LOAD_IMAGE_COLOR);
-    if (!ims_bgr.data) {
+
+    Mat img_bgr = imread(ims_name, CV_LOAD_IMAGE_COLOR);
+    if (!img_bgr.data) {
         cout << ERROR << "Could not open the image." << ims_name << endl;
         exit(1);
     }
-    int width = ims_bgr.size().width;
-    int height = ims_bgr.size().height;
-    Mat ims_hsv(height, width, CV_8UC3); cvtColor(ims_bgr, ims_hsv, CV_BGR2HSV);
+    int width = img_bgr.size().width;
+    int height = img_bgr.size().height;
+    Mat img_hsv(height, width, CV_8UC3); cvtColor(img_bgr, img_hsv, CV_BGR2HSV);
     Mat ims_threshold(height, width, CV_8UC1);
-    /*
-    Mat ims_cheat_oc(imread("../data/log1/001-cheat.png"));
-    Mat ims_cheat(height, width, CV_8UC1); Vec3b blank(0,0,0);
-    for (int row = 0; row < height; row++){
-        for (int col = 0; col < width; col++){
-            if (ims_cheat_oc.at<Vec3b>(row,col) == blank) {
-                ims_cheat.at<uchar>(row,col) = 255;
-            }
-            else {
-                cout << "coucou" << endl;
-                ims_cheat.at<uchar>(row,col) = 0;
-                ims_cheat_oc.at<uchar>(row, col) = 255;
-            }   
-        }
-    }
-    imshow("i", ims_cheat);
-    waitKey(0);
-*/
-    /*
-    vector<Mat> hsv_channels(3);
-    split(ims_hsv, hsv_channels);
-    imshow("H", hsv_channels[0]);
-    imshow("S", hsv_channels[1]);
-    imshow("V", hsv_channels[2]);
 
-    vector<Mat> bgr_channels(3);
-    split(ims_bgr, bgr_channels);
-    imshow("B", bgr_channels[0]);
-    imshow("G", bgr_channels[1]);
-    imshow("R", bgr_channels[2]);
-    */
+    vector<int> cheats;
+    //{1,27,105,117,151,161,247,271}
+    cheats.push_back(1); cheats.push_back(27); cheats.push_back(105); cheats.push_back(117); cheats.push_back(151); cheats.push_back(161); cheats.push_back(247); cheats.push_back(271);
 
-    //adaptiveThreshold(ims_bgr, ims_bgr_thresh, );
 
-    //VideoWriter video("output.avi", CV_FOURCC('M','J','P','G'), 20, Size(width, height), true);
-
-    /*
-    Mat mask;
-    inRange(ims_hsv, Scalar(30,0,0), Scalar(90,255,255), mask);
-    imshow("mask", mask);
-    waitKey(0);
-    */
-
-    for (int img = 1; img <= 1; img++)
+    for (int img_nb = 1; img_nb <= 1; img_nb++)
     {
         string current_ims_name = "../data/log1/";
         string result_ims_name = "../data/log1_results/medianfilter-";
-        if (img < 10) {current_ims_name += "00";}
-        else if (img < 100) {current_ims_name += "0";}
-        stringstream ss; ss << img;
+        if (img_nb < 10) {current_ims_name += "00";}
+        else if (img_nb < 100) {current_ims_name += "0";}
+        stringstream ss; ss << img_nb;
         current_ims_name += ss.str() + "-rgb.png";
         result_ims_name += ss.str() + "-rgb.png";
 
-        Mat ims_bgr = imread(current_ims_name, CV_LOAD_IMAGE_COLOR); //change ims_name to current_ims_name when using for
-        Mat ims_hsv; cvtColor(ims_bgr, ims_hsv, CV_BGR2HSV);
-        Mat ims_blur(height, width, CV_8UC3);
-        Mat ims_bin(height, width, CV_8UC1);
-        Mat ims_res(height, width, CV_8UC1);
+        Mat img_bgr = imread(current_ims_name, CV_LOAD_IMAGE_COLOR);
+        Mat img_hsv; cvtColor(img_bgr, img_hsv, CV_BGR2HSV);
+        Mat img_blur(height, width, CV_8UC3);
+        Mat img_thresh(height, width, CV_8UC1);
+        Mat img_res(height, width, CV_8UC1);
 
-        //median blur à 1 2 sur hsv
-        medianBlur(ims_hsv, ims_blur, 3);
-        imshow("ims_blur", ims_blur);
-        //binarization (???) sur res
+        //léger median blur sur hsv
+        medianBlur(img_hsv, img_blur, 3);
+        //seuillage du vert
         for (int row = 0; row < height; row++){
             for (int col = 0; col < width; col++){
-                uchar h = ims_hsv.at<Vec3b>(row,col)[0];
+                uchar h = img_hsv.at<Vec3b>(row,col)[0];
                 if ((h > 30) && (h < 90))
-                    ims_bin.at<uchar>(row,col) = 255; //ims_hsv.at<Vec3b>(row,col)[0];
+                    img_thresh.at<uchar>(row,col) = 255;
             }
         }
-        imshow("h_blurred", ims_bin);
-        //median blur samere à ~50 sur res
-        medianBlur(ims_bin, ims_res, 39);
-        imshow("ims_res", ims_res);
+        //median blur samere sur thresh
+        medianBlur(img_thresh, img_res, 39);
+        imshow("res", img_res);
 
+        /*
+        //us
+        vector< vector<Point> > contours;
+        vector<Vec4i> hierarchy; 
+        findContours(img_res, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+        //cheat
+        vector< vector<Point> > contours_c;
+        vector<Vec4i> hierarchy_c; 
+        findContours(img_res, contours_c, hierarchy_c, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+        //us
+        vector< vector<Point> > hull(contours.size());
+        for(int i = 0; i < contours.size(); i++)
+            convexHull(Mat(contours[i]), hull[i]);
+        //cheat
+        vector< vector<Point> > hull_c(contours_c.size());
+        for(int i = 0; i < contours_c.size(); i++)
+            convexHull(Mat(contours_c[i]), hull_c[i]);
+        // create a blank image (black image)
+        Mat drawing = Mat::zeros(img_res.size(), CV_8UC3);
+        for(int i = 0; i < contours.size(); i++) {
+            cv::Scalar color_contours = Scalar(0, 255, 0); // green - color for contours
+            cv::Scalar color = Scalar(255, 0, 0); // blue - color for convex hull
+            cv::Scalar color_c = Scalar(0, 0, 255); // red - color for convex hull real
+            // draw ith contour
+            drawContours(drawing, contours, i, color_contours, 1, 8, vector<Vec4i>(), 0, Point());
+            // draw ith convex hull
+            drawContours(drawing, hull_c, i, color_c, 1, 8, vector<Vec4i>(), 0, Point()); //cheat
+            drawContours(drawing, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point()); //us
+        }
+        imshow("contour", drawing);
         waitKey(0);
+        */
+
+        if (std::find(cheats.begin(), cheats.end(), img_nb) != cheats.end()) {
+            compare_visually(img_res, img_nb);
+            compare_numberly(img_res, img_nb);
+        }
     }
 }
 
 int main(int argc, char* argv[])
 {
     (void) argc;
-    /* 
-    boucle sur les images
-        inrange sur l'image n
-        extraire forme des points les plus externes parmi les thresholdés
-    */
 
-   process(argv[1]);
+    process(argv[1]);
 
-   return EXIT_SUCCESS;  
+    return EXIT_SUCCESS;  
 }
