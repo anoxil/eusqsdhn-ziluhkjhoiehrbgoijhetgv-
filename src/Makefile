@@ -15,6 +15,7 @@ OBJ=\
 BIN=\
 	threshold\
 	threshold-medianfilter\
+	threshold-medianfilter-video\
 	threshold-opening
 
 .PHONY: all 
