@@ -11,6 +11,19 @@ void onTrackbarSlide(int pos, void *) {
     //cout << "Destinate frame : " << pos << endl;
 }
 
+int getMaxAreaContourId(vector <vector<cv::Point> > contours) {
+    double maxArea = 0;
+    int maxAreaContourId = -1;
+    for (int j = 0; j < contours.size(); j++) {
+        double newArea = cv::contourArea(contours.at(j));
+        if (newArea > maxArea) {
+            maxArea = newArea;
+            maxAreaContourId = j;
+        } // End if
+    } // End for
+    return maxAreaContourId;
+} // End function
+
 void process(const char *vidname) {
     (void) vidname;
     int trackbar_pos = 0;
@@ -39,9 +52,14 @@ void process(const char *vidname) {
     cout << "width : " << frame_width << "   heigth : " << frame_height << endl;
     cout << "Number of frame : " << max_frame << endl;
 
+    double delay = 1000000.0 / fps;
+
+    clock_t start;
+
     for (;;) {
         *cap >> frame;
 
+        start = clock();
         if (!frame.data)
             break;
 
@@ -55,13 +73,13 @@ void process(const char *vidname) {
 
 
         Mat img_blur(frame_height, frame_width, CV_8UC3);
-        medianBlur(frame, img_blur, 3);
+        medianBlur(frame, img_blur, 5); // ca fout en l'air le imshow quand le chiffre est trop grand
 
         Mat img_hsv;
         cvtColor(img_blur, img_hsv, CV_BGR2HSV);
 
         Mat img_thresh(frame_height, frame_width, CV_8UC1);
-        Mat img_res(frame_height, frame_width, CV_8UC1);
+        //Mat img_res(frame_height, frame_width, CV_8UC1); // attention fait planter l'image, chelou
 
         //léger median blur sur hsv
 //        medianBlur(img_hsv, img_blur, 3);
@@ -74,14 +92,14 @@ void process(const char *vidname) {
             }
         }
         //median blur samere sur thresh
-        medianBlur(img_thresh, img_res, 39);
+        //medianBlur(img_thresh, img_res, 39);
         //imshow("res", img_res);
 
 
         //us
         vector <vector<Point> > contours;
         vector <Vec4i> hierarchy;
-        findContours(img_res, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+        findContours(img_thresh, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
         //us
         vector <vector<Point> > hull(contours.size());
@@ -89,31 +107,38 @@ void process(const char *vidname) {
             convexHull(Mat(contours[i]), hull[i]);
 //
         // create a blank image (black image)
-        Mat drawing = Mat::zeros(img_res.size(), CV_8UC3);
-        for (int i = 0; i < contours.size(); i++) {
-            cv::Scalar color_contours = Scalar(0, 255, 0); // green - color for contours
-            cv::Scalar color = Scalar(255, 0, 0); // blue - color for convex hull
-            cv::Scalar color_c = Scalar(0, 0, 255); // red - color for convex hull real
-            // draw ith contour
-            drawContours(drawing, contours, i, color_contours, 1, 8, vector<Vec4i>(), 0, Point());
-            // draw ith convex hull
-            //drawContours(drawing, hull_c, i, color_c, 1, 8, vector<Vec4i>(), 0, Point()); //cheat
-            drawContours(drawing, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point()); //us
-        }
+        Mat drawing = Mat::zeros(img_thresh.size(), CV_8UC3);
+//        for (int i = 0; i < contours.size(); i++) {
+//            cv::Scalar color_contours = Scalar(0, 255, 0); // green - color for contours
+//            cv::Scalar color = Scalar(255, 0, 0); // blue - color for convex hull
+//            cv::Scalar color_c = Scalar(0, 0, 255); // red - color for convex hull real
+//            // draw ith contour
+//            drawContours(drawing, contours, i, color_contours, 1, 8, vector<Vec4i>(), 0, Point());
+//            // draw ith convex hull
+//            //drawContours(drawing, hull_c, i, color_c, 1, 8, vector<Vec4i>(), 0, Point()); //cheat
+//            drawContours(drawing, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point()); //us
+//        }
+
+        drawContours(frame, hull, getMaxAreaContourId(contours), Scalar(255, 0, 0), 1, 8, vector<Vec4i>(), 0, Point()); //us
 //        imshow("contour", drawing);
 //        waitKey(0);
 
 
         //imshow(vidname, frame);
-        imshow(vidname, drawing);
+        imshow(vidname, frame);
 
 
         if (waitKey(30) >= 0) {
             break;
         }
+
+        while (clock() - start < delay) {
+            //waitKey(1);
+        }
+
     }
     cap->release();
-    destroyAllWindows();
+//    destroyAllWindows();
 }
 
 void usage(const char *s) {
