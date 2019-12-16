@@ -31,6 +31,7 @@ void compare_visually(Mat& inputArray, int img_number)
         }
     }
 
+
     imshow("Comparison processed vs true", img_res);
     waitKey(0);
 }
@@ -46,20 +47,26 @@ void compare_numberly(Mat& inputArray, int img_number)
     int nb_false_neg = 0;
     int nb_false_pos = 0;
     int nb_true_pos = 0;
+    int nb_total = 0;
 
     for (int row = 0; row < height; row++){
         for (int col = 0; col < width; col++){
+            //cout << "input:" << (int)inputArray.at<uchar>(row,col) << "|true:" << (int)img_true.at<uchar>(row,col) << endl;
             if ((inputArray.at<uchar>(row,col) == 0) && (img_true.at<uchar>(row,col) == 0)) { //true negative
-                nb_true_neg++;
+                nb_true_neg++; nb_total++;
             } else if ((inputArray.at<uchar>(row,col) == 0) && (img_true.at<uchar>(row,col) == 255)) { //false negative
-                nb_false_neg++;
+                nb_false_neg++; nb_total++;
             } else if ((inputArray.at<uchar>(row,col) == 255) && (img_true.at<uchar>(row,col) == 0)) { //false positive
-                nb_false_pos++;
+                nb_false_pos++; nb_total++;
             } else if ((inputArray.at<uchar>(row,col) == 255) && (img_true.at<uchar>(row,col) == 255)) { //true positive
-                nb_true_pos++;
+                nb_true_pos++; nb_total++;
             }
         }
     }
+
+    cout << "False Negative : " << nb_false_neg << " pixels\t" << "False Positive : " << nb_false_pos << " pixels\n"
+         << "True Negative : " << nb_true_neg << " pixels\t" << "True Positive : " << nb_true_pos << " pixels\n"
+         << "Total : " << nb_total << " pixels\t" << "Missed : " << total - nb_total << " pixels\n" << endl;
 
     double perc_true_neg = (double)nb_true_neg/total;
     double perc_false_neg = (double)nb_false_neg/total;

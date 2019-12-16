@@ -52,19 +52,23 @@ void process(const char* ims_name)
     int height = ims_bgr.size().height;
     Mat ims_hsv(height, width, CV_8UC3);
     Mat mask(height, width, CV_8UC1);
-    Mat mask_temp(height, width, CV_8UC1);
-    Mat mask_result(height, width, CV_8UC1);
+    Mat img_temp(height, width, CV_8UC1);
+    Mat img_res(height, width, CV_8UC1);
+    Mat shape = makeShape(12);
 
-    for (int img = 1; img <= 1; img++)
+    vector<int> cheats;
+    //{1,27,105,117,151,161,247,271}
+    cheats.push_back(1); cheats.push_back(27); cheats.push_back(105); cheats.push_back(117); cheats.push_back(151); cheats.push_back(161); cheats.push_back(247); cheats.push_back(271);
+
+    for (int img_nb = 161; img_nb <= 161; img_nb++)
     {
-        cout << "img:" << img << endl;
         string current_ims_name = "../data/log1/";
         string result_ims_name = "../data/log1_results/opening-";
-        if (img < 10) {current_ims_name += "00";}
-        else if (img < 100) {current_ims_name += "0";}
-        stringstream ss; ss << img;
-        current_ims_name += ss.str() + "-rgb.png";
-        result_ims_name += ss.str() + "-rgb.png";
+        if (img_nb < 10) {current_ims_name += "00";}
+        else if (img_nb < 100) {current_ims_name += "0";}
+        stringstream img_nb_ss; img_nb_ss << img_nb;
+        current_ims_name += img_nb_ss.str() + "-rgb.png";
+        result_ims_name += img_nb_ss.str() + "-rgb.png";
 
         ims_bgr = imread(current_ims_name, CV_LOAD_IMAGE_COLOR);
         cvtColor(ims_bgr, ims_hsv, CV_BGR2HSV);
@@ -73,26 +77,23 @@ void process(const char* ims_name)
         inRange(ims_hsv, Scalar(30,0,0), Scalar(90,255,255), mask);
 
         //second step
-        //-- Get the shape
-        Mat shape = makeShape(12);
-
         //-- Make the erosion
-        mm(shape, mask, mask_temp, minimum);
+        mm(shape, mask, img_temp, minimum);
 
         //-- Make the dilation
-        mm(shape, mask_temp, mask_result, maximum);
-        imwrite(result_ims_name, mask_result);
+        mm(shape, img_temp, img_res, maximum);
+        //imwrite(result_ims_name, img_res);
 
         /*////////
         vector< vector<Point> > contours;
         vector<Vec4i> hierarchy; 
-        findContours(mask_result, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+        findContours(img_res, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
         vector< vector<Point> > hull(contours.size());
         for(int i = 0; i < contours.size(); i++)
             convexHull(Mat(contours[i]), hull[i]);
 
-        Mat drawing = Mat::zeros(mask_result.size(), CV_8UC3);
+        Mat drawing = Mat::zeros(img_res.size(), CV_8UC3);
 
         for(int i = 0; i < contours.size(); i++) {
             cv::Scalar color_contours = Scalar(0, 255, 0); // green - color for contours
@@ -105,6 +106,12 @@ void process(const char* ims_name)
         imshow("result", drawing);
         waitKey(0);
         */
+
+        if (std::find(cheats.begin(), cheats.end(), img_nb) != cheats.end()) {
+          string txt = "=== Comparing image " + img_nb_ss.str(); cout << txt << " ===\n" << endl;
+          compare_numberly(img_res, img_nb);
+          compare_visually(img_res, img_nb);
+        }
     }
 }
 

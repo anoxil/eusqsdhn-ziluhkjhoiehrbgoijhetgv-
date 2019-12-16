@@ -32,7 +32,7 @@ test-opening:
 
 .PHONY: test-medianfilter
 test-medianfilter:
-	./threshold-medianfilter ../data/log1/001-rgb.png
+	./threshold-medianfilter ../data/log1/027-rgb.png
 
 .PHONY: clean
 clean:
