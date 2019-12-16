@@ -8,7 +8,7 @@ Mat get_img_true(int img_number)
     return img_true;
 }
 
-void compare_visually(Mat& inputArray, int img_number)
+Mat compare_visually(Mat& inputArray, int img_number)
 {
     Mat img_true = get_img_true(img_number);
     int height = inputArray.size().height;
@@ -31,9 +31,10 @@ void compare_visually(Mat& inputArray, int img_number)
         }
     }
 
-
     imshow("Comparison processed vs true", img_res);
     waitKey(0);
+
+    return img_res;
 }
 
 void compare_numberly(Mat& inputArray, int img_number)
@@ -51,7 +52,6 @@ void compare_numberly(Mat& inputArray, int img_number)
 
     for (int row = 0; row < height; row++){
         for (int col = 0; col < width; col++){
-            //cout << "input:" << (int)inputArray.at<uchar>(row,col) << "|true:" << (int)img_true.at<uchar>(row,col) << endl;
             if ((inputArray.at<uchar>(row,col) == 0) && (img_true.at<uchar>(row,col) == 0)) { //true negative
                 nb_true_neg++; nb_total++;
             } else if ((inputArray.at<uchar>(row,col) == 0) && (img_true.at<uchar>(row,col) == 255)) { //false negative

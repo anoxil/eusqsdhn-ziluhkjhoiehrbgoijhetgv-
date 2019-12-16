@@ -1,10 +1,13 @@
 CPPFLAGS=-I/opt/opencv/include 
-CXXFLAGS=-Wall -Wextra #-Werror
+CXXFLAGS=-Wall -Wextra -Werror
 LDFLAGS=-Wl,-R/opt/opencv/lib -L/opt/opencv/lib
 LDLIBS=\
 	-lopencv_core\
 	-lopencv_imgproc\
-	-lopencv_highgui
+	-lopencv_highgui\
+	-lopencv_features2d\
+  	-lopencv_nonfree\
+  	-lopencv_calib3d
 
 
 OBJ=\
@@ -13,27 +16,32 @@ OBJ=\
 	compare.o
 
 BIN=\
-	threshold\
+	threshold-opening\
 	threshold-medianfilter\
 	threshold-medianfilter-video\
-	threshold-opening
+	threshold-medianfilter-video-interests
+
 
 .PHONY: all 
 all: $(BIN)
 
 $(BIN): $(OBJ)
 
-.PHONY: test
-test:
-	./threshold ../data/log1/001-rgb.png
-
 .PHONY: test-opening
 test-opening:
-	./threshold-opening ../data/log1/001-rgb.png
+	./threshold-opening
 
 .PHONY: test-medianfilter
 test-medianfilter:
-	./threshold-medianfilter ../data/log1/027-rgb.png
+	./threshold-medianfilter ../data/output_log1.mp4
+
+.PHONY: test-medianfilter-video
+test-medianfilter-video:
+	./threshold-medianfilter-video ../data/output_log1.mp4
+
+.PHONY: test-medianfilter-video-interests
+test-medianfilter-video-interests:
+	./threshold-medianfilter-video-interests ../data/output_log1.mp4
 
 .PHONY: clean
 clean:
